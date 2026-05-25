@@ -1,0 +1,8 @@
+{
+  "usingComponents": {},
+  "enablePullDownRefresh": true,
+  "onReachBottomDistance": 100,
+  "backgroundTextStyle": "dark",
+  "backgroundColor": "#f5f5f5",
+  "navigationBarTitleText": "主流新闻"
+}
