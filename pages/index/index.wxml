@@ -1,0 +1,68 @@
+<view class="container">
+  <!-- 错误状态 -->
+  <view class="error-wrap" wx:if="{{error}}">
+    <text class="error-text">{{errorMsg}}</text>
+    <button class="retry-btn" bindtap="onRetry" size="mini" type="primary" plain>重试</button>
+  </view>
+
+  <block wx:if="{{!error}}">
+    <!-- 分类标签栏 -->
+    <scroll-view class="category-bar" scroll-x enhanced show-scrollbar="{{false}}">
+      <view class="category-list">
+        <view
+          class="category-item {{currentCategory === item.value ? 'active' : ''}}"
+          wx:for="{{categories}}"
+          wx:key="value"
+          data-value="{{item.value}}"
+          bindtap="onCategoryTap"
+        >
+          {{item.label}}
+        </view>
+      </view>
+    </scroll-view>
+
+    <!-- 轮播图 -->
+    <swiper class="banner" indicator-dots autoplay circular interval="5000" wx:if="{{bannerList.length > 0}}">
+      <swiper-item wx:for="{{bannerList}}" wx:key="id">
+        <view class="banner-item" data-id="{{item.id}}" bindtap="onBannerTap">
+          <image class="banner-img" src="{{item.coverImage}}" mode="aspectFill" lazy-load />
+          <view class="banner-mask">
+            <text class="banner-title">{{item.title}}</text>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+
+    <!-- 新闻列表 -->
+    <view class="news-list">
+      <view
+        class="news-item"
+        wx:for="{{newsList}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        bindtap="onNewsTap"
+      >
+        <image class="news-cover" src="{{item.coverImage}}" mode="aspectFill" lazy-load />
+        <view class="news-info">
+          <text class="news-title text-ellipsis-2">{{item.title}}</text>
+          <text class="news-summary text-ellipsis-2">{{item.summary}}</text>
+          <view class="news-meta">
+            <text class="news-source">{{item.source}}</text>
+            <text class="news-time">{{item.timeText}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 空状态 -->
+    <view class="empty-wrap" wx:if="{{!loading && newsList.length === 0}}">
+      <text class="empty-text">暂无新闻，去看看其他分类吧</text>
+    </view>
+
+    <!-- 底部加载提示 -->
+    <view class="load-more" wx:if="{{newsList.length > 0}}">
+      <text wx:if="{{loading}}">加载中...</text>
+      <text wx:elif="{{!hasMore}}">—— 没有更多了 ——</text>
+    </view>
+  </block>
+</view>
