@@ -115,26 +115,28 @@ function fetchNewsList({ category, page = 1, pageSize = 10 })
 // 返回 Promise<NewsItem | null>
 function fetchNewsDetail(id)
 
-// 返回 Promise<NewsItem[]>  — 用于轮播图取最新 N 条
-function fetchTopNews({ limit = 5 })
+// 返回 Promise<NewsItem[]>  — 用于轮播图取最新 N 条（MVP 默认 3 条）
+function fetchTopNews({ limit = 3 })
 ```
 
 ### 数据模型
 
-```typescript
-interface NewsItem {
-  id: string;              // 唯一标识
-  title: string;           // 标题，≤50 字
-  summary: string;         // 摘要，≤100 字
-  content: string;         // 正文（MVP 为纯文本分段，段落以 \n 分隔）
-  coverImage: string;      // 封面图 URL
-  images?: string[];       // 正文图片 URL 数组（可选）
-  category: Category;      // 分类枚举
-  source: string;          // 来源
-  publishTime: string;     // ISO 8601 时间字符串
-}
+```javascript
+// 新闻数据模型（JavaScript 对象约定）
+const NewsItem = {
+  id: 'string',            // 唯一标识
+  title: 'string',         // 标题，≤50 字
+  summary: 'string',       // 摘要，≤100 字
+  content: 'string',       // 正文（MVP 为纯文本分段，段落以 \n 分隔）
+  coverImage: 'string',    // 封面图 URL
+  images: ['string'],      // 正文图片 URL 数组（可选）
+  category: 'Category',    // 分类枚举，见下方
+  source: 'string',        // 来源
+  publishTime: 'string',   // ISO 8601 时间字符串
+};
 
-type Category = 'all' | 'tech' | 'intl' | 'finance' | 'domestic' | 'sports' | 'education';
+// 分类枚举
+const Category = ['all', 'tech', 'intl', 'finance', 'domestic', 'sports', 'education'];
 ```
 
 ---
@@ -228,21 +230,20 @@ v1.0 接入真实数据源时，后端需：
 
 | 风险项 | 等级 | 说明 | 应对策略 |
 |--------|------|------|---------|
-| **Product Spec 待确认项影响实现** | 中 | Q3（正文是否富文本）直接影响详情页渲染方案 | 当前 SDD 假设 MVP 用纯文本 + 图片分段；若产品确认需富文本，需引入 wxParse / rich-text 组件，工期 +1~2 天 |
-| **图片域名白名单** | 低 | 小程序要求下载域名配置白名单，mock 图片使用外部 URL 可能无法加载 | 使用微信开发者工具「不校验合法域名」开发；发布前确认图片域名已加入 `downloadFile` 白名单 |
+| **图片域名白名单配置遗漏** | 中 | 小程序要求 `downloadFile` / `request` 域名配置白名单，mock 占位图域名若未提前配置，真机预览时图片无法加载 | 开发阶段使用微信开发者工具「不校验合法域名」；提测前将占位图域名（如 `picsum.photos`）及后续真实 CDN 域名加入白名单 |
 | **长列表性能** | 低 | MVP 仅 8 条数据无压力，但分页逻辑需预留长列表扩展 | `news-card` 组件设计时保持轻量，避免复杂嵌套；后续数据量大时引入 `recycle-view` |
 | **v1.0 API 迁移成本** | 低 | mock 层与真实 API 数据结构需保持一致 | `services/api.js` 作为唯一数据出口，严格按数据模型定义返回，迁移时仅替换内部实现 |
 
 ---
 
-## 待确认问题
+## 已确认决策
 
-| 序号 | 问题 | 影响 | 建议 |
-|------|------|------|------|
-| **D1** | 新闻正文是否需要富文本渲染（HTML 解析）？ | 详情页实现方案、工期 | **建议 MVP 先用纯文本 + 图片分段**，成本最低；若需富文本，需引入 `rich-text` 或第三方解析库 |
-| **D2** | 轮播图内容规则是否确认为「自动取最新 3 条」？ | `fetchTopNews` 逻辑 | 当前 SDD 按最新 3 条实现；若需人工配置，需新增运营配置接口 |
-| **D3** | mock 图片 URL 来源？使用占位图服务还是自行托管？ | `downloadFile` 白名单配置、图片加载稳定性 | 建议开发阶段使用 `https://picsum.photos` 或类似占位图服务；发布前替换为稳定 CDN |
-| **D4** | 是否使用 TypeScript？ | 项目初始化方案、类型安全 | 建议不用 TS，项目规模小，JS 足够；若团队有 TS 规范，可切换为 TS 模板，工期无显著差异 |
+| 序号 | 决策 | 说明 |
+|------|------|------|
+| **D1** | 正文渲染：纯文本 + 图片分段，MVP 不做富文本 | 详情页正文按段落以 `\n` 分隔渲染，图片以独立数组插入展示。v1.0 接入真实数据时重新评估富文本需求 |
+| **D2** | 轮播图来源：自动取最新 3 条 | `fetchTopNews({ limit = 3 })` 按 `publishTime` 倒序取前 3 条。后续版本支持人工置顶运营配置 |
+| **D3** | mock 图片来源：开发阶段使用占位图服务（如 `picsum.photos`） | 开发期保证 UI 还原度；发布前统一替换为真实 CDN 图片，同步配置 `downloadFile` 白名单 |
+| **D4** | 技术语言：JavaScript，不引入 TypeScript | 项目规模小，JS 足够支撑；当前基础框架也是 JS 初始化，引入 TS 会增加构建复杂度，收益不明显 |
 
 ---
 
