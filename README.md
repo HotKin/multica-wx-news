@@ -5,6 +5,9 @@
 ## 产品文档
 
 - [Product Spec — 产品需求规格](docs/ProductSpec.md)
+- [Web MVP 资料索引](docs/web-mvp/README.md)
+- [Project Memory — 项目决策与文档索引](docs/project-memory/document-index.md)
+- [OpenSpec 变更包索引](openspec/README.md)
 
 ## 项目结构
 
